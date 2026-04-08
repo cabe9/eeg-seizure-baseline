@@ -1,51 +1,88 @@
-# EEG Mini-Project
+# EEG Seizure Detection Baseline (CHB-MIT)
 
-Minimal clinical EEG pipeline built around the CHB-MIT Scalp EEG Database.
+Minimal end-to-end EEG pipeline for seizure detection using real clinical data from the CHB-MIT Scalp EEG Database. The project demonstrates preprocessing, event-based labeling, feature extraction, and baseline classification under a leakage-safe evaluation setup.
 
-## Current status
+## Overview
 
-Day 1 is scaffolded:
+This pipeline:
 
-- local Python environment with `mne`, `numpy`, `pandas`, `matplotlib`, and `scikit-learn`
-- downloader for a tiny CHB-MIT subset
-- summary parser for seizure timings
-- EDF loading through MNE
-- raw and filtered inspection plots for one seizure file and one non-seizure file
+- loads EDF recordings using MNE
+- parses seizure annotations from patient summary files
+- applies light preprocessing (`0.5-40 Hz` bandpass filter)
+- generates fixed-length windows with overlap
+- labels windows based on seizure-interval overlap
+- extracts interpretable per-channel features
+- trains a baseline classifier with file-level splitting
 
-## Quick start
+## Dataset
+
+- Source: CHB-MIT Scalp EEG Database (PhysioNet)
+- Patient: `chb01`
+- Subset used: `chb01_01`, `chb01_03`, `chb01_04`, `chb01_05`, `chb01_06`, `chb01_15`, `chb01_16`, `chb01_17`
+
+## Method
+
+### Preprocessing
+
+- Bandpass filter: `0.5-40 Hz`
+- No aggressive artifact removal, intentionally kept minimal
+
+### Windowing and Labeling
+
+- Fixed `2-second` windows with `50%` overlap
+- Window labeled as seizure if it overlaps the annotated seizure interval
+
+### Features (Per-Channel)
+
+- Band power: delta, theta, alpha, beta
+- Mean
+- Variance
+- Line length
+
+### Model
+
+- Logistic regression
+- Class-weighted to address imbalance
+- File-level split with no window-level leakage
+
+## Results
+
+Train files: `chb01_03`, `chb01_15`, `chb01_01`, `chb01_05`  
+Test files: `chb01_04`, `chb01_16`, `chb01_06`, `chb01_17`
+
+| Metric | Value |
+| --- | ---: |
+| Precision | `0.4815` |
+| Recall | `0.6500` |
+| F1 Score | `0.5532` |
+
+This is a simple baseline for portfolio-scale experimentation, not a clinical model.
+
+## Project Structure
+
+```text
+src/eeg_pipeline/        # reusable modules (loading, windowing, features)
+scripts/                 # pipeline stages (preprocessing, modeling)
+data/processed/          # intermediate artifacts
+results/
+  figures/               # plots (confusion matrix, examples)
+  tables/                # metrics, predictions
+```
+
+## Quick Start
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
-python scripts/day1_load_and_inspect.py
+
+python scripts/day2_window_and_features.py
+python scripts/day3_baseline_model.py
 ```
-
-Outputs land in:
-
-- `figures/`
-- `data/processed/`
-- `results/`
-
-## Dataset subset used for Day 1
-
-- Patient: `chb01`
-- Non-seizure recording: `chb01_01.edf`
-- Seizure recording: `chb01_03.edf`
-- Source: CHB-MIT Scalp EEG Database on PhysioNet
-
-## Notes
-
-- The current script keeps preprocessing intentionally light: a `0.5-40 Hz` bandpass filter without aggressive artifact removal.
-- The pipeline uses real CHB-MIT scalp EEG recordings from PhysioNet rather than simulated signals.
-- Seizure-window labels are created by sliding fixed windows across each EDF and marking a window as seizure when it overlaps the annotated seizure interval from the patient summary file.
-- The baseline classifier uses per-channel spectral and statistical features, including delta/theta/alpha/beta band power, mean, variance, and line length.
-- Evaluation is constrained to a file-level split, so whole EDF files are assigned to train or test rather than randomly mixing windows across both sets.
-
-## Results
-
-The final subset uses eight real CHB-MIT `chb01` recordings: `chb01_01`, `03`, `04`, `05`, `06`, `15`, `16`, and `17`. The file-level split keeps whole EDFs intact, with train files `chb01_03`, `15`, `01`, `05` and test files `chb01_04`, `16`, `06`, `17`. On that meaningful split, the logistic-regression baseline reached precision `0.4815`, recall `0.6500`, and F1 `0.5532`. This is a simple baseline for portfolio-scale experimentation, not a clinical model.
 
 ## Limitations
 
-This project uses a small subset of CHB-MIT rather than the full dataset. Window labels are derived from seizure time intervals, so each window inherits a coarse window-level label instead of event-level expert review. The feature set is limited to simple handcrafted spectral and statistical descriptors with logistic regression as the classifier. The pipeline is for educational and portfolio use only and is not intended for clinical deployment.
+- Uses a small subset of CHB-MIT rather than the full dataset
+- Window-level labels are derived from seizure intervals rather than expert-reviewed events
+- Uses simple handcrafted features and a baseline logistic-regression model
+- Not intended for clinical use
