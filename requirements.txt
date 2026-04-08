@@ -1,0 +1,8 @@
+numpy==2.0.2
+pandas==2.3.3
+matplotlib==3.9.4
+scipy==1.13.1
+scikit-learn==1.6.1
+mne==1.8.0
+pyedflib==0.1.42
+jupyter==1.1.1
