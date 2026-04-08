@@ -2,9 +2,9 @@
 __pycache__/
 .DS_Store
 
-data/raw/
-data/processed/
-figures/
+/data/raw/
+/data/processed/
+/figures/
 results/tables/day3_predictions.csv
 
 .ipynb_checkpoints/

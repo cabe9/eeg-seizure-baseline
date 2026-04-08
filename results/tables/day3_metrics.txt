@@ -1,0 +1,11 @@
+Day 3 baseline logistic regression
+Train files: chb01_03.edf, chb01_15.edf, chb01_01.edf, chb01_05.edf
+Test files: chb01_04.edf, chb01_16.edf, chb01_06.edf, chb01_17.edf
+Training windows: 14396
+Test windows: 14396
+Per-channel feature count: 161
+Precision: 0.4815
+Recall: 0.6500
+F1: 0.5532
+Confusion matrix [[tn, fp], [fn, tp]]:
+[[14260, 56], [28, 52]]
