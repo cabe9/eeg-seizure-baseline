@@ -1,0 +1,11 @@
+Day 4 temporal smoothing and event-level evaluation
+Smoothing windows: 5
+Smoothing threshold: 0.50
+Minimum consecutive positive windows: 3
+Test files: chb01_04.edf, chb01_06.edf, chb01_16.edf, chb01_17.edf
+Total true seizure events: 2
+Detected true seizure events: 2
+Detection rate: 1.0000
+False alarm count: 1
+False alarms per hour: 0.2500
+Total test duration (hours): 4.0000

@@ -56,6 +56,8 @@ Test files: `chb01_04`, `chb01_16`, `chb01_06`, `chb01_17`
 | Recall | `0.6500` |
 | F1 Score | `0.5532` |
 
+A temporal post-processing stage using moving-average smoothing and event aggregation detected `2/2` held-out seizure events with `0.25` false alarms/hour on the current test split.
+
 This is a simple baseline for portfolio-scale experimentation, not a clinical model.
 
 ## Project Structure
