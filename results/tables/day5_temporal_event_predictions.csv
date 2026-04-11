@@ -1,0 +1,5 @@
+file_name,predicted_event_id,event_start_seconds,event_end_seconds,duration_seconds,n_windows,max_smoothed_probability,mean_smoothed_probability,overlaps_true_event
+chb01_04.edf,0,1467.0,1488.0,21.0,20,0.999999999999957,0.9049444111526052,True
+chb01_04.edf,1,1490.0,1495.0,5.0,4,0.8182007060419234,0.7124940157951692,True
+chb01_16.edf,0,1013.0,1021.0,8.0,7,0.9938961439268464,0.8202306605571728,True
+chb01_16.edf,1,1024.0,1053.0,29.0,28,0.9999965170840784,0.8207819376290749,True

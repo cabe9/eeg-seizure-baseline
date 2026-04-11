@@ -1,0 +1,15 @@
+Day 5 lagged-feature temporal model
+Train files: chb01_03.edf, chb01_15.edf, chb01_01.edf, chb01_05.edf
+Test files: chb01_04.edf, chb01_16.edf, chb01_06.edf, chb01_17.edf
+Number of lags: 2
+Base per-channel feature count: 161
+Temporal feature count: 483
+Training windows: 14388
+Test windows: 14388
+Precision: 0.6410
+Recall: 0.6250
+F1: 0.6329
+Confusion matrix [[tn, fp], [fn, tp]]:
+[[14280, 28], [30, 50]]
+Event detection rate: 1.0000
+False alarms per hour: 0.0000
