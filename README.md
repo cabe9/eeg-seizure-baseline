@@ -45,18 +45,24 @@ This pipeline:
 - Class-weighted to address imbalance
 - File-level split with no window-level leakage
 
+### Temporal Model
+
+- Simple temporal baseline using lagged features rather than deep learning
+- Concatenates features from the previous `2` windows from the same EDF only
+- Preserves the same file-level train/test split and logistic-regression classifier
+- Applies causal moving-average smoothing and event aggregation after prediction
+
 ## Results
 
 Train files: `chb01_03`, `chb01_15`, `chb01_01`, `chb01_05`  
 Test files: `chb01_04`, `chb01_16`, `chb01_06`, `chb01_17`
 
-| Metric | Value |
-| --- | ---: |
-| Precision | `0.4815` |
-| Recall | `0.6500` |
-| F1 Score | `0.5532` |
+| Model | Precision | Recall | F1 Score | Event Detection | False Alarms / Hour |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Window baseline | `0.4815` | `0.6500` | `0.5532` | `2/2` held-out seizure events detected | `0.25` |
+| Lagged-feature temporal baseline | `0.6410` | `0.6250` | `0.6329` | `2/2` held-out seizure events detected | `0.00` |
 
-A temporal post-processing stage using moving-average smoothing and event aggregation detected `2/2` held-out seizure events with `0.25` false alarms/hour on the current test split.
+Added a simple temporal baseline by concatenating features from the previous two windows within each EDF recording, while preserving the same file-level train/test split and logistic-regression classifier. This improved window-level F1 from `0.5532` to `0.6329` on the current held-out split. After temporal smoothing and event aggregation, the temporal model detected all `2/2` held-out seizure events on this split with `0.00` false alarms/hour.
 
 This is a simple baseline for portfolio-scale experimentation, not a clinical model.
 
@@ -80,6 +86,7 @@ pip install -r requirements.txt
 
 python scripts/day2_window_and_features.py
 python scripts/day3_baseline_model.py
+python scripts/day5_temporal_feature_model.py
 ```
 
 ## Limitations
@@ -87,4 +94,5 @@ python scripts/day3_baseline_model.py
 - Uses a small subset of CHB-MIT rather than the full dataset
 - Window-level labels are derived from seizure intervals rather than expert-reviewed events
 - Uses simple handcrafted features and a baseline logistic-regression model
+- Temporal results come from a single-patient, small held-out split and are not clinically validated
 - Not intended for clinical use
