@@ -1,0 +1,14 @@
+Day 6 PyTorch CNN baseline
+Device: mps
+Train files: chb01_03.edf, chb01_15.edf, chb01_01.edf, chb01_05.edf
+Test files: chb01_04.edf, chb01_16.edf, chb01_06.edf, chb01_17.edf
+Epochs: 12
+Batch size: 64
+Learning rate: 0.001
+Precision: 0.6606
+Recall: 0.9000
+F1: 0.7619
+Confusion matrix [[tn, fp], [fn, tp]]:
+[[14279, 37], [8, 72]]
+Event detection rate: 1.0000
+False alarms per hour: 0.5000

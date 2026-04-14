@@ -61,8 +61,16 @@ Test files: `chb01_04`, `chb01_16`, `chb01_06`, `chb01_17`
 | --- | ---: | ---: | ---: | ---: | ---: |
 | Window baseline | `0.4815` | `0.6500` | `0.5532` | `2/2` held-out seizure events detected | `0.25` |
 | Lagged-feature temporal baseline | `0.6410` | `0.6250` | `0.6329` | `2/2` held-out seizure events detected | `0.00` |
+| PyTorch CNN baseline | `0.6606` | `0.9000` | `0.7619` | `2/2` held-out seizure events detected | `0.50` |
 
-Added a simple temporal baseline by concatenating features from the previous two windows within each EDF recording, while preserving the same file-level train/test split and logistic-regression classifier. This improved window-level F1 from `0.5532` to `0.6329` on the current held-out split. After temporal smoothing and event aggregation, the temporal model detected all `2/2` held-out seizure events on this split with `0.00` false alarms/hour.
+### PyTorch CNN
+
+- Small 1D CNN trained on raw filtered multi-channel EEG windows in PyTorch
+- Keeps the same file-level train/test split and event-level post-processing for fair comparison
+
+The CNN improves recall and window-level F1 relative to the feature baseline, but the higher recall comes with more false alarms than the lagged-feature temporal model.
+
+These PyTorch results come from a single patient and only `2` held-out seizure events, so they should be treated as exploratory rather than clinically validated.
 
 This is a simple baseline for portfolio-scale experimentation, not a clinical model.
 
@@ -87,6 +95,7 @@ pip install -r requirements.txt
 python scripts/day2_window_and_features.py
 python scripts/day3_baseline_model.py
 python scripts/day5_temporal_feature_model.py
+python scripts/day6_pytorch_cnn.py
 ```
 
 ## Limitations
