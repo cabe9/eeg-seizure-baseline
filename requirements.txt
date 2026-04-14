@@ -6,3 +6,4 @@ scikit-learn==1.6.1
 mne==1.8.0
 pyedflib==0.1.42
 jupyter==1.1.1
+torch==2.8.0
