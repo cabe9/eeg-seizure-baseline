@@ -1,0 +1,19 @@
+Day 7 cross-patient logistic baseline
+Train patient: chb01
+Test patient: chb02
+Train files: chb01_01.edf, chb01_03.edf, chb01_04.edf, chb01_05.edf, chb01_06.edf, chb01_15.edf, chb01_16.edf, chb01_17.edf
+Test files: chb02_16.edf, chb02_16+.edf, chb02_17.edf, chb02_19.edf
+Smoothing windows: 5
+Smoothing threshold: 0.5
+Minimum consecutive positive windows: 3
+Precision: 0.0375
+Recall: 0.4971
+F1: 0.0697
+Confusion matrix [[tn, fp], [fn, tp]]:
+[[9129, 2234], [88, 87]]
+True held-out seizure events: 3
+Detected held-out seizure events: 3
+Event detection rate: 1.0000
+False alarm count: 119
+False alarms per hour: 37.1166
+Leakage note: feature scaling and raw-window standardization are fit on chb01 only; smoothing is causal and applied after prediction.

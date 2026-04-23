@@ -1,0 +1,4 @@
+file_name,true_event_id,event_start_seconds,event_end_seconds,duration_seconds,detected
+chb02_16+.edf,0,2972.0,3053.0,81.0,True
+chb02_16.edf,0,130.0,212.0,82.0,True
+chb02_19.edf,0,3369.0,3378.0,9.0,True
