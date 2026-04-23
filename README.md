@@ -92,10 +92,10 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 
-python scripts/day2_window_and_features.py
-python scripts/day3_baseline_model.py
-python scripts/day5_temporal_feature_model.py
-python scripts/day6_pytorch_cnn.py
+python scripts/build_window_feature_dataset.py
+python scripts/run_logistic_feature_baseline.py
+python scripts/run_lagged_feature_baseline.py
+python scripts/run_pytorch_cnn_baseline.py
 ```
 
 ## Limitations
