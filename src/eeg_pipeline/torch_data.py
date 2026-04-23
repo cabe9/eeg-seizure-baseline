@@ -18,6 +18,26 @@ class RawWindowDataset:
     sampling_rate_hz: float
 
 
+@dataclass(frozen=True)
+class ChannelStandardizer:
+    mean: np.ndarray
+    std: np.ndarray
+
+
+def fit_channel_standardizer(windows: np.ndarray) -> ChannelStandardizer:
+    mean = windows.mean(axis=(0, 2), keepdims=True)
+    std = windows.std(axis=(0, 2), keepdims=True)
+    return ChannelStandardizer(mean=mean, std=np.clip(std, a_min=1e-6, a_max=None))
+
+
+def apply_channel_standardizer(
+    windows: np.ndarray,
+    standardizer: ChannelStandardizer,
+) -> np.ndarray:
+    standardized = (windows - standardizer.mean) / standardizer.std
+    return standardized.astype(np.float32)
+
+
 def build_raw_window_dataset(
     data_dir: Path,
     patient_id: str,
@@ -26,13 +46,16 @@ def build_raw_window_dataset(
     filter_high_hz: float,
     window_seconds: float,
     overlap_fraction: float,
+    pick_channels: list[str] | None = None,
+    normalize: bool = True,
+    standardizer: ChannelStandardizer | None = None,
 ) -> RawWindowDataset:
     files = ensure_subset(data_dir, patient_id, filenames)
     summary_path = files[f"{patient_id}-summary.txt"]
     sampling_rate_hz, _, summary_df = parse_summary(summary_path)
 
     raw_recordings = {filename: load_recording(files[filename]) for filename in filenames}
-    shared_channels = common_channels(raw_recordings.values())
+    shared_channels = pick_channels if pick_channels is not None else common_channels(raw_recordings.values())
 
     windows_list: list[np.ndarray] = []
     metadata_list: list[pd.DataFrame] = []
@@ -64,11 +87,10 @@ def build_raw_window_dataset(
     all_metadata = pd.concat(metadata_list, ignore_index=True)
     all_metadata["window_id"] = range(len(all_metadata))
 
-    # Per-channel z-score using training data later is ideal; for raw amplitudes this global
-    # standardization keeps optimization stable while preserving waveform shape.
-    channel_mean = all_windows.mean(axis=(0, 2), keepdims=True)
-    channel_std = all_windows.std(axis=(0, 2), keepdims=True)
-    all_windows = (all_windows - channel_mean) / np.clip(channel_std, a_min=1e-6, a_max=None)
+    if standardizer is not None:
+        all_windows = apply_channel_standardizer(all_windows, standardizer)
+    elif normalize:
+        all_windows = apply_channel_standardizer(all_windows, fit_channel_standardizer(all_windows))
 
     return RawWindowDataset(
         windows=all_windows,

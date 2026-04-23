@@ -35,7 +35,7 @@ def ensure_results_dirs() -> tuple[Path, Path]:
 def main() -> None:
     _figures_dir, tables_dir = ensure_results_dirs()
 
-    predictions = pd.read_csv(ROOT / "results" / "tables" / "day3_predictions.csv")
+    predictions = pd.read_csv(ROOT / "results" / "tables" / "logistic_baseline_predictions.csv")
     summary_path = ROOT / "data" / "raw" / "chbmit" / PATIENT_ID / f"{PATIENT_ID}-summary.txt"
     _, _, summary_df = parse_summary(summary_path)
 
@@ -68,12 +68,12 @@ def main() -> None:
         recording_durations_seconds=recording_durations_seconds,
     )
 
-    smoothed.to_csv(tables_dir / "day4_smoothed_predictions.csv", index=False)
-    scored_predicted_events.to_csv(tables_dir / "day4_event_predictions.csv", index=False)
-    scored_true_events.to_csv(tables_dir / "day4_true_event_evaluation.csv", index=False)
+    smoothed.to_csv(tables_dir / "event_postprocessing_smoothed_predictions.csv", index=False)
+    scored_predicted_events.to_csv(tables_dir / "event_postprocessing_event_predictions.csv", index=False)
+    scored_true_events.to_csv(tables_dir / "event_postprocessing_true_event_evaluation.csv", index=False)
 
     metrics_lines = [
-        "Day 4 temporal smoothing and event-level evaluation",
+        "Temporal smoothing and event-level evaluation",
         f"Smoothing windows: {SMOOTHING_WINDOWS}",
         f"Smoothing threshold: {SMOOTHING_THRESHOLD:.2f}",
         f"Minimum consecutive positive windows: {MIN_CONSECUTIVE_POSITIVE_WINDOWS}",
@@ -85,13 +85,13 @@ def main() -> None:
         f"False alarms per hour: {metrics['false_alarms_per_hour']:.4f}",
         f"Total test duration (hours): {metrics['total_test_duration_hours']:.4f}",
     ]
-    (tables_dir / "day4_event_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
+    (tables_dir / "event_postprocessing_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
 
     print("Saved outputs:")
-    print("  FILE    results/tables/day4_smoothed_predictions.csv")
-    print("  FILE    results/tables/day4_event_predictions.csv")
-    print("  FILE    results/tables/day4_true_event_evaluation.csv")
-    print("  FILE    results/tables/day4_event_metrics.txt")
+    print("  FILE    results/tables/event_postprocessing_smoothed_predictions.csv")
+    print("  FILE    results/tables/event_postprocessing_event_predictions.csv")
+    print("  FILE    results/tables/event_postprocessing_true_event_evaluation.csv")
+    print("  FILE    results/tables/event_postprocessing_metrics.txt")
     print(f"  DETECT  {int(metrics['detected_true_events'])}/{int(metrics['total_true_events'])}")
     print(f"  DRATE   {metrics['detection_rate']:.4f}")
     print(f"  FA/H    {metrics['false_alarms_per_hour']:.4f}")

@@ -72,7 +72,7 @@ def plot_confusion_matrix(confusion: np.ndarray, output_path: Path) -> None:
     ax.set_yticks([0, 1], labels=class_labels)
     ax.set_xlabel("Predicted label")
     ax.set_ylabel("True label")
-    ax.set_title("Day 3 Confusion Matrix")
+    ax.set_title("Logistic Baseline Confusion Matrix")
 
     for row in range(confusion.shape[0]):
         for col in range(confusion.shape[1]):
@@ -98,7 +98,9 @@ def main() -> None:
 
     per_channel_columns = sorted([column for column in data.columns if "__" in column])
     if not per_channel_columns:
-        raise ValueError("No per-channel feature columns found. Re-run the Day 2 feature extraction step first.")
+        raise ValueError(
+            "No per-channel feature columns found. Re-run build_window_feature_dataset.py first."
+        )
 
     train_files, test_files = validate_file_split(windows_metadata)
     train_mask = data["file_name"].isin(train_files)
@@ -141,12 +143,12 @@ def main() -> None:
     ].copy()
     predictions["predicted_label"] = y_pred
     predictions["predicted_probability_seizure"] = y_score
-    predictions.to_csv(tables_dir / "day3_predictions.csv", index=False)
+    predictions.to_csv(tables_dir / "logistic_baseline_predictions.csv", index=False)
 
-    plot_confusion_matrix(confusion, figures_dir / "day3_confusion_matrix.png")
+    plot_confusion_matrix(confusion, figures_dir / "logistic_baseline_confusion_matrix.png")
 
     metrics_lines = [
-        "Day 3 baseline logistic regression",
+        "Logistic feature baseline",
         f"Train files: {', '.join(train_files)}",
         f"Test files: {', '.join(test_files)}",
         f"Training windows: {len(x_train)}",
@@ -159,12 +161,12 @@ def main() -> None:
         str(confusion.tolist()),
     ]
 
-    (tables_dir / "day3_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
+    (tables_dir / "logistic_baseline_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
 
     print("Saved outputs:")
-    print("  FILE    results/tables/day3_metrics.txt")
-    print("  FILE    results/tables/day3_predictions.csv")
-    print("  FIGURE  results/figures/day3_confusion_matrix.png")
+    print("  FILE    results/tables/logistic_baseline_metrics.txt")
+    print("  FILE    results/tables/logistic_baseline_predictions.csv")
+    print("  FIGURE  results/figures/logistic_baseline_confusion_matrix.png")
     print(f"  TRAIN   {', '.join(train_files)}")
     print(f"  TEST    {', '.join(test_files)}")
     print(f"  PREC    {precision:.4f}")

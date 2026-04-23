@@ -18,7 +18,7 @@ from sklearn.preprocessing import StandardScaler
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from eeg_pipeline.chbmit import parse_summary, seizure_intervals_for_file
+from eeg_pipeline.chbmit import load_recording, parse_summary, seizure_intervals_for_file
 from eeg_pipeline.events import (
     classify_smoothed_windows,
     evaluate_event_predictions,
@@ -48,6 +48,8 @@ SMOOTHING_WINDOWS = 5
 SMOOTHING_THRESHOLD = 0.5
 MIN_CONSECUTIVE_POSITIVE_WINDOWS = 3
 PATIENT_ID = "chb01"
+EXAMPLE_CHANNEL = "FP1-F7"
+EXAMPLE_PADDING_SECONDS = 20.0
 
 
 def ensure_results_dir() -> tuple[Path, Path]:
@@ -87,10 +89,105 @@ def plot_confusion_matrix(confusion: np.ndarray, output_path: Path) -> None:
     ax.set_yticks([0, 1], labels=class_labels)
     ax.set_xlabel("Predicted label")
     ax.set_ylabel("True label")
-    ax.set_title("Day 5 Temporal Feature Model Confusion Matrix")
+    ax.set_title("Lagged-Feature Baseline Confusion Matrix")
     for row in range(confusion.shape[0]):
         for col in range(confusion.shape[1]):
             ax.text(col, row, str(confusion[row, col]), ha="center", va="center", color="black")
+    fig.tight_layout()
+    fig.savefig(output_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+
+
+def plot_temporal_example(
+    predictions: pd.DataFrame,
+    true_events: pd.DataFrame,
+    raw_data_dir: Path,
+    output_path: Path,
+) -> None:
+    if true_events.empty:
+        return
+
+    example_event = true_events.sort_values("duration_seconds", ascending=False).iloc[0]
+    file_name = str(example_event["file_name"])
+    event_start = float(example_event["event_start_seconds"])
+    event_end = float(example_event["event_end_seconds"])
+    window_start = max(0.0, event_start - EXAMPLE_PADDING_SECONDS)
+    window_end = event_end + EXAMPLE_PADDING_SECONDS
+
+    raw = load_recording(raw_data_dir / file_name)
+    channel = EXAMPLE_CHANNEL if EXAMPLE_CHANNEL in raw.ch_names else raw.ch_names[0]
+    start_sample = int(window_start * raw.info["sfreq"])
+    stop_sample = int(window_end * raw.info["sfreq"])
+    eeg_signal, eeg_times = raw.get_data(
+        picks=[channel],
+        start=start_sample,
+        stop=stop_sample,
+        return_times=True,
+    )
+    eeg_signal_uv = eeg_signal[0] * 1e6
+
+    segment_predictions = predictions.loc[
+        predictions["file_name"].eq(file_name)
+        & predictions["window_end_seconds"].ge(window_start)
+        & predictions["window_start_seconds"].le(window_end)
+    ].copy()
+    segment_predictions["window_center_seconds"] = (
+        segment_predictions["window_start_seconds"] + segment_predictions["window_end_seconds"]
+    ) / 2.0
+
+    fig, axes = plt.subplots(3, 1, figsize=(14, 9), sharex=True)
+
+    axes[0].plot(eeg_times, eeg_signal_uv, linewidth=0.8, color="tab:blue")
+    axes[0].axvspan(event_start, event_end, color="crimson", alpha=0.18)
+    axes[0].set_ylabel(f"{channel}\n(uV)")
+    axes[0].set_title(f"Representative EEG segment with temporal predictions ({file_name})")
+    axes[0].grid(alpha=0.2)
+
+    axes[1].plot(
+        segment_predictions["window_center_seconds"],
+        segment_predictions["predicted_probability_seizure"],
+        label="Raw probability",
+        linewidth=1.0,
+        alpha=0.65,
+        color="tab:gray",
+    )
+    axes[1].plot(
+        segment_predictions["window_center_seconds"],
+        segment_predictions["smoothed_probability_seizure"],
+        label="Smoothed probability",
+        linewidth=1.5,
+        color="tab:green",
+    )
+    axes[1].axhline(SMOOTHING_THRESHOLD, linestyle="--", linewidth=1.0, color="black", alpha=0.6)
+    axes[1].axvspan(event_start, event_end, color="crimson", alpha=0.18)
+    axes[1].set_ylabel("Probability")
+    axes[1].legend(loc="upper right")
+    axes[1].grid(alpha=0.2)
+
+    axes[2].step(
+        segment_predictions["window_center_seconds"],
+        segment_predictions["predicted_label"],
+        where="mid",
+        label="Raw predicted label",
+        linewidth=1.0,
+        color="tab:gray",
+        alpha=0.7,
+    )
+    axes[2].step(
+        segment_predictions["window_center_seconds"],
+        segment_predictions["smoothed_positive_label"],
+        where="mid",
+        label="Smoothed event label",
+        linewidth=1.5,
+        color="tab:green",
+    )
+    axes[2].axvspan(event_start, event_end, color="crimson", alpha=0.18)
+    axes[2].set_ylabel("Label")
+    axes[2].set_xlabel("Time (seconds)")
+    axes[2].set_yticks([0, 1])
+    axes[2].legend(loc="upper right")
+    axes[2].grid(alpha=0.2)
+
     fig.tight_layout()
     fig.savefig(output_path, dpi=180, bbox_inches="tight")
     plt.close(fig)
@@ -111,7 +208,9 @@ def main() -> None:
 
     base_feature_columns = sorted([column for column in data.columns if "__" in column])
     if not base_feature_columns:
-        raise ValueError("No per-channel feature columns found. Re-run the Day 2 feature extraction step first.")
+        raise ValueError(
+            "No per-channel feature columns found. Re-run build_window_feature_dataset.py first."
+        )
 
     temporal_data = add_lagged_features(
         data=data,
@@ -161,9 +260,9 @@ def main() -> None:
     ].copy()
     predictions["predicted_label"] = y_pred
     predictions["predicted_probability_seizure"] = y_score
-    predictions.to_csv(tables_dir / "day5_temporal_predictions.csv", index=False)
+    predictions.to_csv(tables_dir / "lagged_feature_baseline_predictions.csv", index=False)
 
-    plot_confusion_matrix(confusion, figures_dir / "day5_temporal_confusion_matrix.png")
+    plot_confusion_matrix(confusion, figures_dir / "lagged_feature_baseline_confusion_matrix.png")
 
     summary_path = ROOT / "data" / "raw" / "chbmit" / PATIENT_ID / f"{PATIENT_ID}-summary.txt"
     _, _, summary_df = parse_summary(summary_path)
@@ -192,12 +291,19 @@ def main() -> None:
         true_events=true_events,
         recording_durations_seconds=recording_durations_seconds,
     )
-    smoothed.to_csv(tables_dir / "day5_temporal_smoothed_predictions.csv", index=False)
-    scored_predicted_events.to_csv(tables_dir / "day5_temporal_event_predictions.csv", index=False)
-    scored_true_events.to_csv(tables_dir / "day5_temporal_true_event_evaluation.csv", index=False)
+    smoothed.to_csv(tables_dir / "lagged_feature_baseline_smoothed_predictions.csv", index=False)
+    scored_predicted_events.to_csv(tables_dir / "lagged_feature_baseline_event_predictions.csv", index=False)
+    scored_true_events.to_csv(tables_dir / "lagged_feature_baseline_true_event_evaluation.csv", index=False)
+
+    plot_temporal_example(
+        predictions=smoothed,
+        true_events=scored_true_events,
+        raw_data_dir=ROOT / "data" / "raw" / "chbmit" / PATIENT_ID,
+        output_path=figures_dir / "lagged_feature_temporal_example.png",
+    )
 
     metrics_lines = [
-        "Day 5 lagged-feature temporal model",
+        "Lagged-feature temporal baseline",
         f"Train files: {', '.join(train_files)}",
         f"Test files: {', '.join(test_files)}",
         f"Number of lags: {N_LAGS}",
@@ -213,15 +319,16 @@ def main() -> None:
         f"Event detection rate: {event_metrics['detection_rate']:.4f}",
         f"False alarms per hour: {event_metrics['false_alarms_per_hour']:.4f}",
     ]
-    (tables_dir / "day5_temporal_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
+    (tables_dir / "lagged_feature_baseline_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
 
     print("Saved outputs:")
-    print("  FILE    results/tables/day5_temporal_predictions.csv")
-    print("  FILE    results/tables/day5_temporal_smoothed_predictions.csv")
-    print("  FILE    results/tables/day5_temporal_event_predictions.csv")
-    print("  FILE    results/tables/day5_temporal_true_event_evaluation.csv")
-    print("  FILE    results/tables/day5_temporal_metrics.txt")
-    print("  FIGURE  results/figures/day5_temporal_confusion_matrix.png")
+    print("  FILE    results/tables/lagged_feature_baseline_predictions.csv")
+    print("  FILE    results/tables/lagged_feature_baseline_smoothed_predictions.csv")
+    print("  FILE    results/tables/lagged_feature_baseline_event_predictions.csv")
+    print("  FILE    results/tables/lagged_feature_baseline_true_event_evaluation.csv")
+    print("  FILE    results/tables/lagged_feature_baseline_metrics.txt")
+    print("  FIGURE  results/figures/lagged_feature_baseline_confusion_matrix.png")
+    print("  FIGURE  results/figures/lagged_feature_temporal_example.png")
     print(f"  PREC    {precision:.4f}")
     print(f"  REC     {recall:.4f}")
     print(f"  F1      {f1:.4f}")

@@ -91,7 +91,7 @@ def plot_confusion_matrix(confusion: np.ndarray, output_path: Path) -> None:
     ax.set_yticks([0, 1], labels=class_labels)
     ax.set_xlabel("Predicted label")
     ax.set_ylabel("True label")
-    ax.set_title("Day 6 PyTorch CNN Confusion Matrix")
+    ax.set_title("PyTorch CNN Baseline Confusion Matrix")
     for row in range(confusion.shape[0]):
         for col in range(confusion.shape[1]):
             ax.text(col, row, str(confusion[row, col]), ha="center", va="center", color="black")
@@ -171,9 +171,9 @@ def main() -> None:
     ].copy()
     predictions["predicted_label"] = predictions_binary
     predictions["predicted_probability_seizure"] = probabilities
-    predictions.to_csv(tables_dir / "day6_pytorch_cnn_predictions.csv", index=False)
+    predictions.to_csv(tables_dir / "pytorch_cnn_baseline_predictions.csv", index=False)
 
-    plot_confusion_matrix(confusion, figures_dir / "day6_pytorch_cnn_confusion_matrix.png")
+    plot_confusion_matrix(confusion, figures_dir / "pytorch_cnn_baseline_confusion_matrix.png")
 
     summary_path = ROOT / "data" / "raw" / "chbmit" / PATIENT_ID / f"{PATIENT_ID}-summary.txt"
     _, _, summary_df = parse_summary(summary_path)
@@ -202,12 +202,12 @@ def main() -> None:
         true_events=true_events,
         recording_durations_seconds=recording_durations_seconds,
     )
-    smoothed.to_csv(tables_dir / "day6_pytorch_cnn_smoothed_predictions.csv", index=False)
-    scored_predicted_events.to_csv(tables_dir / "day6_pytorch_cnn_event_predictions.csv", index=False)
-    scored_true_events.to_csv(tables_dir / "day6_pytorch_cnn_true_event_evaluation.csv", index=False)
+    smoothed.to_csv(tables_dir / "pytorch_cnn_baseline_smoothed_predictions.csv", index=False)
+    scored_predicted_events.to_csv(tables_dir / "pytorch_cnn_baseline_event_predictions.csv", index=False)
+    scored_true_events.to_csv(tables_dir / "pytorch_cnn_baseline_true_event_evaluation.csv", index=False)
 
     metrics_lines = [
-        "Day 6 PyTorch CNN baseline",
+        "PyTorch CNN baseline",
         f"Device: {device}",
         f"Train files: {', '.join(TRAIN_FILES)}",
         f"Test files: {', '.join(TEST_FILES)}",
@@ -222,15 +222,15 @@ def main() -> None:
         f"Event detection rate: {event_metrics['detection_rate']:.4f}",
         f"False alarms per hour: {event_metrics['false_alarms_per_hour']:.4f}",
     ]
-    (tables_dir / "day6_pytorch_cnn_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
+    (tables_dir / "pytorch_cnn_baseline_metrics.txt").write_text("\n".join(metrics_lines) + "\n")
 
     print("Saved outputs:")
-    print("  FILE    results/tables/day6_pytorch_cnn_predictions.csv")
-    print("  FILE    results/tables/day6_pytorch_cnn_smoothed_predictions.csv")
-    print("  FILE    results/tables/day6_pytorch_cnn_event_predictions.csv")
-    print("  FILE    results/tables/day6_pytorch_cnn_true_event_evaluation.csv")
-    print("  FILE    results/tables/day6_pytorch_cnn_metrics.txt")
-    print("  FIGURE  results/figures/day6_pytorch_cnn_confusion_matrix.png")
+    print("  FILE    results/tables/pytorch_cnn_baseline_predictions.csv")
+    print("  FILE    results/tables/pytorch_cnn_baseline_smoothed_predictions.csv")
+    print("  FILE    results/tables/pytorch_cnn_baseline_event_predictions.csv")
+    print("  FILE    results/tables/pytorch_cnn_baseline_true_event_evaluation.csv")
+    print("  FILE    results/tables/pytorch_cnn_baseline_metrics.txt")
+    print("  FIGURE  results/figures/pytorch_cnn_baseline_confusion_matrix.png")
     print(f"  PREC    {precision:.4f}")
     print(f"  REC     {recall:.4f}")
     print(f"  F1      {f1:.4f}")

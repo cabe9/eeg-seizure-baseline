@@ -135,7 +135,7 @@ def main() -> None:
     ].copy()
     metadata["sampling_rate_hz"] = sampling_rate
     metadata["channels_listed_in_summary"] = len(summary_channels)
-    metadata.to_csv(dirs["data_processed"] / "day1_subset_metadata.csv", index=False)
+    metadata.to_csv(dirs["data_processed"] / "inspection_subset_metadata.csv", index=False)
 
     seizure_meta = summary_df.loc[summary_df["filename"] == SEIZURE_FILE].iloc[0]
     seizure_start = float(seizure_meta["seizure_start_seconds"])
@@ -166,13 +166,13 @@ def main() -> None:
         frame=non_frame,
         channels=channels,
         title=f"{PATIENT_ID} non-seizure segment ({NON_SEIZURE_FILE})",
-        output_path=dirs["figures"] / "day1_non_seizure_raw.png",
+        output_path=dirs["figures"] / "inspection_non_seizure_raw.png",
     )
     plot_multichannel_segment(
         frame=seizure_frame,
         channels=channels,
         title=f"{PATIENT_ID} seizure-onset segment ({SEIZURE_FILE})",
-        output_path=dirs["figures"] / "day1_seizure_raw.png",
+        output_path=dirs["figures"] / "inspection_seizure_raw.png",
         marker_time=seizure_start,
     )
     plot_filter_comparison(
@@ -180,13 +180,13 @@ def main() -> None:
         filtered_frame=seizure_filtered_frame,
         channel=channels[0],
         title=f"{PATIENT_ID} seizure segment raw vs filtered",
-        output_path=dirs["figures"] / "day1_filter_comparison.png",
+        output_path=dirs["figures"] / "inspection_filter_comparison.png",
         marker_time=seizure_start,
     )
     plot_psd(
         raw=filtered_seizure,
         channels=channels,
-        output_path=dirs["figures"] / "day1_filtered_psd.png",
+        output_path=dirs["figures"] / "inspection_filtered_psd.png",
     )
 
     run_summary = pd.DataFrame(
@@ -206,12 +206,12 @@ def main() -> None:
             }
         ]
     )
-    run_summary.to_csv(dirs["data_processed"] / "day1_run_summary.csv", index=False)
+    run_summary.to_csv(dirs["data_processed"] / "inspection_run_summary.csv", index=False)
 
     print("Saved outputs:")
-    for path in sorted(dirs["figures"].glob("day1_*")):
+    for path in sorted(dirs["figures"].glob("inspection_*")):
         print(f"  FIGURE  {path.relative_to(ROOT)}")
-    for path in sorted(dirs["data_processed"].glob("day1_*")):
+    for path in sorted(dirs["data_processed"].glob("inspection_*")):
         print(f"  TABLE   {path.relative_to(ROOT)}")
     print(f"  TABLE   {(dirs['data_processed'] / 'chb01_recording_summary.csv').relative_to(ROOT)}")
 

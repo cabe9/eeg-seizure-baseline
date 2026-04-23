@@ -167,7 +167,7 @@ def main() -> None:
             f"Seizure-labeled window | {seizure_file} | "
             f"{seizure_example['window_start_seconds']:.1f}-{seizure_example['window_end_seconds']:.1f}s"
         ),
-        output_path=dirs["figures"] / "day2_seizure_window_check.png",
+        output_path=dirs["figures"] / "window_label_seizure_check.png",
         seizure_intervals=seizure_intervals_for_file(summary_df, seizure_file),
     )
     plot_window(
@@ -178,15 +178,15 @@ def main() -> None:
             f"Non-seizure window | {non_seizure_file} | "
             f"{non_seizure_example['window_start_seconds']:.1f}-{non_seizure_example['window_end_seconds']:.1f}s"
         ),
-        output_path=dirs["figures"] / "day2_non_seizure_window_check.png",
+        output_path=dirs["figures"] / "window_label_non_seizure_check.png",
         seizure_intervals=seizure_intervals_for_file(summary_df, non_seizure_file),
     )
 
     print("\nSaved outputs:")
     print("  TABLE   data/processed/windows_metadata.csv")
     print("  TABLE   data/processed/features.csv")
-    print("  FIGURE  figures/day2_seizure_window_check.png")
-    print("  FIGURE  figures/day2_non_seizure_window_check.png")
+    print("  FIGURE  figures/window_label_seizure_check.png")
+    print("  FIGURE  figures/window_label_non_seizure_check.png")
     print("\nSplit note: file-level train/test splitting is intentionally not implemented yet.")
 
 
